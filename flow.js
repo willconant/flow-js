@@ -1,4 +1,4 @@
-// Javascript Library for Multi-step Asynchronous Jobs
+// Javascript Library for Multi-step Asynchronous Logic
 // Version 0.1
 // Copyright (c) 2010 William R. Conant, WillConant.com
 // Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
