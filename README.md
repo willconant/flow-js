@@ -1,6 +1,9 @@
 Flow-JS
 ===============
 
+Overview
+---------------
+
 Flow-JS provides a continuation-esque construct that makes it much easier to express
 multi-step asynchronous logic in non-blocking callback-heavy environments like
 Node.js or javascript in the web browser.
@@ -61,7 +64,131 @@ Now look at the same example using Flow-JS:
 	);
 
 A flow consists of a series of functions, each of which is applied with a special
-"this" object which serves as a callback to the next function in the series. In
-cases like our second step, this.spool() can be used to generate a callback that
+`this` object which serves as a callback to the next function in the series. In
+cases like our second step, `this.spool()` can be used to generate a callback that
 won't call the next function until all such callbacks have been called.
+
+
+Installing
+---------------
+
+Flow-JS is a CommonJS compatible module. Place the "flow.js" file in any directory
+listed in your `require.paths` array and require it like this:
+
+	var flow = require('flow')
+
+Or you can just put "flow.js" next to your script and do this:
+
+	var flow = require('./flow')
+
+
+Details
+---------------
+
+Flow-JS provides two functions: `flow.define` and `flow.exec`.
+
+`flow.define` defines a flow given any number of functions as parameters. It returns
+a function that can be used to execute that flow more than once. Whatever parameters
+are passed each time that flow is called are passed as the parameters to the first
+function in the flow.
+
+Each function in the flow is called with a special `this` object which maintains the
+state of the flow's execution, acts as a container for saving values for use between
+functions in the flow, and acts as a callback to the next function in the flow.
+
+Here is an example to make this clear:
+
+	// define a flow for renaming a file and then printing its stats
+	var renameAndStat = flow.define(
+	
+		function(fromName, toName) {
+			// arguments passed to renameAndStat() will pass through to this first function
+			
+			this.toName = toName; // save to be used in the next function
+			fs.rename(fromName, toName, this);
+		
+		},function(err) {
+			// when fs.rename calls the special "this" callback above, this function will be called
+			// whatever arguments fs.rename chooses to pass to the callback will pass through to this function
+		
+			if (err) throw err;
+			
+			// the "this" here is the same as in the function above, so this.toName is available
+			fs.stat(this.toName, this);
+		
+		},function(err, stats) {
+			// when fs.stat calls the "this" callback above, this function will be called
+			// whatever arguments fs.stat chooses to pass to the callback will pass through to this function
+			
+			if (err) throw err;
+			
+			sys.puts("stats: " + JSON.stringify(stats));
+		}
+	);
+	
+	// now renameAndStat can be used more than once
+	renameAndStat("/tmp/hello1", "/tmp/world1");
+	renameAndStat("/tmp/hello2", "/tmp/world2");
+
+`flow.exec` is a convenience function that defines a flow and executes it immediately,
+passing no arguments to the first function.
+
+Here's a simple example very similar to the one above:
+
+	flow.exec(
+		function() {
+			fs.rename("/tmp/hello", "/tmp/world", this);
+		},function(err) {
+			if (err) throw err;
+			fs.stat("/tmp/world", this)
+		},function(err, stats) {
+			if (err) throw err;
+			sys.puts("stats: " + JSON.stringify(stats));
+		}
+	);
+
+
+Spooling
+---------------
+
+Sometimes, it makes sense for a step in a flow to initiate several asynchronous tasks and
+then wait for all of those tasks to finish before continuing to the next step in the flow.
+This can be accomplished by passing `this.spool()` as the callback rather than just `this`.
+
+Here is an example of `this.spool()` in action (repeated from the overview):
+
+	flow.exec(
+		function() {
+			dbGet('userIdOf:bobvance', this);
+			
+		},function(userId) {
+			dbSet('user:' + userId + ':email', 'bobvance@potato.egg', this.spool());
+			dbSet('user:' + userId + ':firstName', 'Bob', this.spool());
+			dbSet('user:' + userId + ':lastName', 'Vance', this.spool());
+		
+		},function() {
+			okWeAreDone()
+		}
+	);
+
+In many cases, you may simply discard the arguments passed to each of the callbacks generated
+by `this.spool()`, but if you need them, they are accessible as an array of `arguments`
+objects passed as the first argument of the next function. Each `arguments` object will be
+appended to the array as it is received, so the order will be unpredictable for most
+asynchronous APIs.
+
+Here's a quick example that checks for errors:
+
+	flow.exec(
+		function() {
+			fs.rename("/tmp/a", "/tmp/1", this.spool());
+			fs.rename("/tmp/b", "/tmp/2", this.spool());
+			fs.rename("/tmp/c", "/tmp/3", this.spool());
+		
+		},function(argsArray) {
+			argsArray.forEach(function(args){
+				if (args[0]) then throw args[0];
+			});
+		}
+	);
 
