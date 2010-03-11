@@ -133,6 +133,10 @@
 		exports.serialForEach = serialForEach;
 	}
 	else if (window !== undefined) {
-		// todo: figure out other exports
+		window.flow = {
+			define: define,
+			exec: exec,
+			serialForEach: serialForEach
+		};
 	}
 })();
