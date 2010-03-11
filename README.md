@@ -54,9 +54,9 @@ Now look at the same example using Flow-JS:
 			dbGet('userIdOf:bobvance', this);
 			
 		},function(userId) {
-			dbSet('user:' + userId + ':email', 'bobvance@potato.egg', this.spool());
-			dbSet('user:' + userId + ':firstName', 'Bob', this.spool());
-			dbSet('user:' + userId + ':lastName', 'Vance', this.spool());
+			dbSet('user:' + userId + ':email', 'bobvance@potato.egg', this.MULTI());
+			dbSet('user:' + userId + ':firstName', 'Bob', this.MULTI());
+			dbSet('user:' + userId + ':lastName', 'Vance', this.MULTI());
 		
 		},function() {
 			okWeAreDone()
@@ -65,7 +65,7 @@ Now look at the same example using Flow-JS:
 
 A flow consists of a series of functions, each of which is applied with a special
 `this` object which serves as a callback to the next function in the series. In
-cases like our second step, `this.spool()` can be used to generate a callback that
+cases like our second step, `this.MULTI()` can be used to generate a callback that
 won't call the next function until all such callbacks have been called.
 
 
@@ -82,10 +82,8 @@ Or you can just put "flow.js" next to your script and do this:
 	var flow = require('./flow')
 
 
-Details
+Defining a Flow
 ---------------
-
-Flow-JS provides two functions: `flow.define` and `flow.exec`.
 
 `flow.define` defines a flow given any number of functions as parameters. It returns
 a function that can be used to execute that flow more than once. Whatever parameters
@@ -130,6 +128,10 @@ Here is an example to make this clear:
 	renameAndStat("/tmp/hello1", "/tmp/world1");
 	renameAndStat("/tmp/hello2", "/tmp/world2");
 
+
+Executing a Flow Just Once
+---------------
+
 `flow.exec` is a convenience function that defines a flow and executes it immediately,
 passing no arguments to the first function.
 
@@ -148,23 +150,23 @@ Here's a simple example very similar to the one above:
 	);
 
 
-Spooling
+Multiplexing
 ---------------
 
 Sometimes, it makes sense for a step in a flow to initiate several asynchronous tasks and
 then wait for all of those tasks to finish before continuing to the next step in the flow.
-This can be accomplished by passing `this.spool()` as the callback rather than just `this`.
+This can be accomplished by passing `this.MULTI()` as the callback rather than just `this`.
 
-Here is an example of `this.spool()` in action (repeated from the overview):
+Here is an example of `this.MULTI()` in action (repeated from the overview):
 
 	flow.exec(
 		function() {
 			dbGet('userIdOf:bobvance', this);
 			
 		},function(userId) {
-			dbSet('user:' + userId + ':email', 'bobvance@potato.egg', this.spool());
-			dbSet('user:' + userId + ':firstName', 'Bob', this.spool());
-			dbSet('user:' + userId + ':lastName', 'Vance', this.spool());
+			dbSet('user:' + userId + ':email', 'bobvance@potato.egg', this.MULTI());
+			dbSet('user:' + userId + ':firstName', 'Bob', this.MULTI());
+			dbSet('user:' + userId + ':lastName', 'Vance', this.MULTI());
 		
 		},function() {
 			okWeAreDone()
@@ -172,7 +174,7 @@ Here is an example of `this.spool()` in action (repeated from the overview):
 	);
 
 In many cases, you may simply discard the arguments passed to each of the callbacks generated
-by `this.spool()`, but if you need them, they are accessible as an array of `arguments`
+by `this.MULTI()`, but if you need them, they are accessible as an array of `arguments`
 objects passed as the first argument of the next function. Each `arguments` object will be
 appended to the array as it is received, so the order will be unpredictable for most
 asynchronous APIs.
@@ -181,9 +183,9 @@ Here's a quick example that checks for errors:
 
 	flow.exec(
 		function() {
-			fs.rename("/tmp/a", "/tmp/1", this.spool());
-			fs.rename("/tmp/b", "/tmp/2", this.spool());
-			fs.rename("/tmp/c", "/tmp/3", this.spool());
+			fs.rename("/tmp/a", "/tmp/1", this.MULTI());
+			fs.rename("/tmp/b", "/tmp/2", this.MULTI());
+			fs.rename("/tmp/c", "/tmp/3", this.MULTI());
 		
 		},function(argsArray) {
 			argsArray.forEach(function(args){
@@ -192,3 +194,27 @@ Here's a quick example that checks for errors:
 		}
 	);
 
+
+serialForEach
+---------------
+
+Flow-JS comes with a convience function called `flow.serialForEach` which can be used to
+apply an asynchronous function to each element in an array of values serially:
+
+	flow.serialForEach([1, 2, 3, 4], function(val) {
+		keystore.increment("counter", val, this);
+	},function(error, newVal) {
+		if (error) throw error;
+		sys.puts('newVal: ' + newVal);
+	},function() {
+		sys.puts('This is the end!');
+	});
+
+`flow.serialForEach` takes an array-like object, a function to be called for each item
+in the array, a function that receives the callback values after each iteration, and a
+function that is called after the entire process is finished. Both of the second two
+functions are optional.
+
+`flow.serialForEach` is actually implemented with `flow.define`.
+
+Thanks to John Wright for suggesting the idea! (http://github.com/mrjjwright)
