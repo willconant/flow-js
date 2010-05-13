@@ -127,12 +127,12 @@
 	);
 	
 	// export our functions
-	if (exports !== undefined) {
+	if (typeof exports !== "undefined") {
 		exports.define = define;
 		exports.exec = exec;
 		exports.serialForEach = serialForEach;
 	}
-	else if (window !== undefined) {
+	else if (typeof window !== "undefined") {
 		window.flow = {
 			define: define,
 			exec: exec,
