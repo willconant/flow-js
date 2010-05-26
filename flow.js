@@ -93,7 +93,8 @@
 	
 	// defines a flow and evaluates it immediately. The first flow function won't receive any arguments.
 	function exec() {
-		applyArgs(exports.define, exports, arguments)();
+		var flow = typeof exports != 'undefined' ? exports : window.flow;
+		applyArgs(flow.define, flow, arguments)();
 	}
 	
 	// a very useful flow for serial execution of asynchronous functions over a list of values
