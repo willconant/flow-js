@@ -1,5 +1,5 @@
 // Javascript Library for Multi-step Asynchronous Logic
-// Version 0.2
+// Version 0.2.2
 // Copyright (c) 2010 William R. Conant, WillConant.com
 // Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
 
