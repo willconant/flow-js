@@ -4,7 +4,7 @@ var keystore = require('./examples/keystore');
 
 var flowsComplete = 0;
 setTimeout(function() {
-	var expected = 3;
+	var expected = 4;
 	assert.strictEqual(flowsComplete, expected, flowsComplete + "/" + expected +" flows finished");
 }, 1000);
 
@@ -32,6 +32,26 @@ flow.exec(
 		flowsComplete += 1;
 	
 	}
+);
+
+// MULTI with callback test
+var fetchedFirstName, fetchedLastName;
+flow.exec(
+  function() {
+    var db = keystore.getDb();
+    db.firstName = "Bob"
+    db.lastName = "Vance"
+    keystore.get("firstName", this.MULTI(function(error, value){
+      fetchedFirstName = value;
+    }));
+    keystore.get("lastName", this.MULTI(function(error, value){
+      fetchedLastName = value;
+    }));
+  },function() {
+    assert.strictEqual(fetchedFirstName, "Bob", "multi with callback test didn't work");
+    assert.strictEqual(fetchedLastName, "Vance", "multi with callback test didn't work");
+    flowsComplete += 1;
+  }
 );
 
 // serialForEach test
