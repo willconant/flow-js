@@ -31,6 +31,14 @@ exports.get = function(key, callback) {
 	}, 100);
 }
 
+// keystore.exists(key, callback)
+// callback signature: (value)
+exports.exists = function(key, callback) {
+	setTimeout(function() {
+		if (callback) callback(key in db);
+	}, 100);
+}
+
 // keystore.increment(key, incrementBy, callback)
 // callback signature: (error, newValue)
 exports.increment = function(key, incrementBy, callback) {

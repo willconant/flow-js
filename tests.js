@@ -4,7 +4,7 @@ var keystore = require('./examples/keystore');
 
 var flowsComplete = 0;
 setTimeout(function() {
-	var expected = 3;
+	var expected = 5;
 	assert.strictEqual(flowsComplete, expected, flowsComplete + "/" + expected +" flows finished");
 }, 1000);
 
@@ -32,6 +32,35 @@ flow.exec(
 		flowsComplete += 1;
 	
 	}
+);
+
+// MULTI with result identifier test
+flow.exec(
+  function() {
+    var db = keystore.getDb();
+    db['firstName'] = "Bob"
+    db['lastName'] = "Vance"
+    keystore.get("firstName", this.MULTI('first-name'));
+    keystore.get("lastName", this.MULTI('last-name'));
+  },function(results) {
+    assert.strictEqual(results['first-name'][1], "Bob", "multi with result identifier test didn't work");
+    assert.strictEqual(results['last-name'][1], "Vance", "multi with result identifier test didn't work");
+    flowsComplete += 1;
+  }
+);
+
+// MULTI with result identifier for single return value test
+flow.exec(
+  function() {
+    var db = keystore.getDb();
+    db['bob'] = "Bob Vance"
+    keystore.exists("bob", this.MULTI('bob-exists'));
+    keystore.exists("john", this.MULTI('john-exists'));
+  },function(results) {
+    assert.strictEqual(results['bob-exists'], true, "multi with result identifier for single return value test didn't work");
+    assert.strictEqual(results['john-exists'], false, "multi with result identifier for single return value test didn't work");
+    flowsComplete += 1;
+  }
 );
 
 // serialForEach test
