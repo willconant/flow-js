@@ -173,6 +173,21 @@ Here is an example of `this.MULTI()` in action (repeated from the overview):
 		}
 	);
 
+  You can identify the results of a function by passing a result identifier to MULTI. The results of a function can retrieved using this key in the final step. The result will be a single value if callback receives 0 or 1 argument, otherwise it will be an array of arguments passed to the callback.
+
+  Example:
+
+	flow.exec(
+		function() {
+			dbGet('userIdOf:bobvance', this.MULTI('bob'));
+			dbGet('userIdOf:joohndoe', this.MULTI('john'));
+		},function(results) {
+		  dbSet('user:' + results['bob'] + ':email', 'bobvance@potato.egg');
+		  dbSet('user:' + results['john'] + ':email', 'joohndoe@potato.egg');
+		  okWeAreDone();
+		}
+	);
+
 In many cases, you may simply discard the arguments passed to each of the callbacks generated
 by `this.MULTI()`, but if you need them, they are accessible as an array of `arguments`
 objects passed as the first argument of the next function. Each `arguments` object will be

@@ -58,11 +58,17 @@
 			// MULTI can be used to generate callbacks that must ALL be called before the next step
 			// in the flow is executed. Arguments to those callbacks are accumulated, and an array of
 			// of those arguments objects is sent as the one argument to the next step in the flow.
-			flowState.MULTI = function() {
+			// @param {String} resultId An identifier to get the result of a multi call.
+			flowState.MULTI = function(resultId) {
 				flowState.__multiCount += 1;
 				return function() {
 					flowState.__multiCount -= 1;
 					flowState.__multiOutputs.push(arguments);
+
+          if (resultId) {
+            var result = arguments.length <= 1 ? arguments[0] : arguments
+            flowState.__multiOutputs[resultId] = result;
+          }
 					
 					if (flowState.__multiCount === 0) {
 						var multiOutputs = flowState.__multiOutputs;
