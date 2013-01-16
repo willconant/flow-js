@@ -133,17 +133,31 @@
 		}
 	);
 	
+	// helper methods
+	function anyError(results) {
+		var r, _i, _len;
+		for (_i = 0, _len = results.length; _i < _len; _i++) {
+			r = results[_i];
+			if (r[0]) {
+				return r[0];
+			}
+		}
+		return null;
+	}
+	
 	// export our functions
 	if (typeof exports !== "undefined") {
 		exports.define = define;
 		exports.exec = exec;
 		exports.serialForEach = serialForEach;
+		exports.anyError = anyError;
 	}
 	else if (typeof window !== "undefined") {
 		window.flow = {
 			define: define,
 			exec: exec,
-			serialForEach: serialForEach
+			serialForEach: serialForEach,
+			anyError: anyError
 		};
 	}
 })();
