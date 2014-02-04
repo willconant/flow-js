@@ -145,6 +145,16 @@
 		return null;
 	}
 	
+        function returnIfAnyError(results, callback) {
+		var err;
+		err = anyError(results);
+		if (!err) {
+			return false;
+		}
+		callback && callback(err);
+		return true;
+	};
+	
 	// export our functions
 	if (typeof exports !== "undefined") {
 		exports.define = define;
@@ -157,7 +167,8 @@
 			define: define,
 			exec: exec,
 			serialForEach: serialForEach,
-			anyError: anyError
+			anyError: anyError,
+			returnIfAnyError: returnIfAnyError
 		};
 	}
 })();
