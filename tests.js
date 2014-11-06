@@ -74,3 +74,22 @@ flow.serialForEach([1, 2, 3, 4], function(val) {
 	assert.deepEqual(valueSequence, [1, 3, 6, 10], "sequence of values is incorrect: " + JSON.stringify(valueSequence));
 	flowsComplete += 1;
 });
+
+// STASH-REVEAL test
+flow.exec(
+	function() {
+	  this(1) //Simulates callback call
+	  
+	},function(a) {
+    this.STASH("a", a) // We don't need 'a' here
+	  this()
+	  
+	},function() {
+    this(2, 3)  // And here
+    
+	},function(b, c) {
+	  a = this.REVEAL("a") // But we need it here
+    assert.strictEqual(a + b + c, 6, "invalid sum of a, b and c in parameter stash test");
+    
+	}
+);
