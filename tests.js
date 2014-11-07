@@ -77,19 +77,15 @@ flow.serialForEach([1, 2, 3, 4], function(val) {
 
 // STASH-REVEAL test
 flow.exec(
-	function() {
-	  this(1) //Simulates callback call
-	  
-	},function(a) {
+  function() {
+    this(1) //Simulates callback call
+  },function(a) {
     this.STASH("a", a) // We don't need 'a' here
-	  this()
-	  
-	},function() {
+    this()
+  },function() {
     this(2, 3)  // And here
-    
-	},function(b, c) {
-	  a = this.REVEAL("a") // But we need it here
+  },function(b, c) {
+    a = this.REVEAL("a") // But we need it here
     assert.strictEqual(a + b + c, 6, "invalid sum of a, b and c in parameter stash test");
-    
-	}
+  }
 );
