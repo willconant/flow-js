@@ -90,6 +90,17 @@
 					timeoutCallback();
 				}, milliseconds);
 			}
+		
+      // Storage for all stashed values
+			flowState.__stash = [];
+			
+			flowState.STASH = function(key, value){
+  			flowState.__stash[key] = value;
+			}
+			
+			flowState.REVEAL = function(key){
+  			return flowState.__stash[key];
+			}
 			
 			applyArgs(flowState, this, arguments);
 		}
